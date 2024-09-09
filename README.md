@@ -1,5 +1,5 @@
 ```commandline
-pip install macro_lib
+pip install macrolibs
 ```
 
 ### Macros for type conversions, recursive search, file handling, etc...
@@ -8,7 +8,7 @@ pip install macro_lib
 ### typemacros
 
 ```commandline
-import macrolib.typemacros
+import macrolibss.typemacros
 ```
 Includes:
 - standardization of unions, intersections, and compliments for all base iterables
@@ -20,7 +20,7 @@ Includes:
 ### filemacros
 
 ```commandline
-import macrolib.filemacros
+import macrolibs.filemacros
 ```
 Includes:
 - `get_script_dir` function to return the directory of the call location
@@ -34,7 +34,7 @@ Includes:
 ### jsonmacros
 
 ```commandline
-import macrolib.jsonmacros
+import macrolibs.jsonmacros
 ```
 Includes:
 - json saving and loading with default format option
