@@ -1,4 +1,4 @@
-from types import GeneratorType, FunctionType
+from types import GeneratorType
 from typing import Any
 import inspect
 
@@ -202,24 +202,15 @@ def maybe_arg(func, pass_to_kwargs= False):
     """
     POSITIONAL_OR_KEYWORD = inspect.Parameter.POSITIONAL_OR_KEYWORD
     EMPTY = inspect.Parameter.empty
-    #POSITIONAL_ONLY = inspect.Parameter.POSITIONAL_ONLY
-    #KEYWORD_ONLY = inspect.Parameter.KEYWORD_ONLY
     VAR_POSITIONAL = inspect.Parameter.VAR_POSITIONAL
-    #VAR_KEYWORD = inspect.Parameter.VAR_KEYWORD
+
     params = inspect.signature(func).parameters.items()
-    #print("params: ", params, "\n")
     required_pars = tuple(par for _, par in params
                           if par.kind in (POSITIONAL_OR_KEYWORD, VAR_POSITIONAL) and par.default is EMPTY)
-    #kinds = tuple(par.kind for _, par in params)
-    #positonal_args = tuple(par for _, par in params if par.kind in (POSITIONAL_OR_KEYWORD, POSITIONAL_ONLY, VAR_POSITIONAL))
-    #keyword_args = {kwar for _, kwar in params if kwar.kind in (KEYWORD_ONLY, VAR_KEYWORD)}
-    #print("pars: ", positonal_args, "\n"*2, "kwars: ", keyword_args, "\n")
-    #for par, param in zip(kinds, params):
-    #    print(f"{param}.kind: ", par)
+
     def wrapper(*args, **kwargs):
         args = args if pass_to_kwargs or not required_pars or required_pars[-1].kind is VAR_POSITIONAL \
             else args[:len(required_pars)]
-        #print(args)
         try:
             return func(*args, **kwargs)
         except TypeError as e:
@@ -234,12 +225,3 @@ def maybe_arg(func, pass_to_kwargs= False):
                 raise e
 
     return wrapper
-
-
-
-
-#def f(x,y,*args):
-#    return x + y + sum(args)
-
-
-#print(maybe_arg(f)(1,2,10,20,30))
