@@ -4,7 +4,7 @@ import sys, os, inspect
 #Script Macros
 #----------------------------------------------------------------------------------------------------------------------
 
-def get_script_dir():
+def get_script_dir() -> str:
     """Returns the directory of the current script if compiled via pyinstaller or not, ran from anywhere."""
     # Get the stack frame of the caller
     frame = inspect.stack()[1]
