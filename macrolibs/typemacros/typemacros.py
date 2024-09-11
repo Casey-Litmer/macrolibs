@@ -19,7 +19,7 @@ def list_union(a: list | tuple | list[list] | tuple[list], b: list | tuple | Non
         l_union = list()
         for n in a:
             if isinstance(n, list | tuple):
-                l_union = list_union(n, l_union)
+                l_union = list_union(l_union, n)
             else:
                 print("'a' must be a list or tuple of lists or tuples if 'b' is empty")
                 raise TypeError
@@ -41,7 +41,7 @@ def tuple_union(a: list | tuple | list[tuple] | tuple[tuple], b: list | tuple | 
         t_union = tuple()
         for n in a:
             if isinstance(n, list | tuple):
-                t_union = tuple_union(n, t_union)
+                t_union = tuple_union(t_union, n)
             else:
                 print("'a' must be a list or tuple of lists or tuples if 'b' is empty")
                 raise TypeError
@@ -64,7 +64,7 @@ def dict_union(a: dict | list[dict] | tuple[dict], b: dict | None = None) -> dic
         d_union = dict()
         for n in a:
             if isinstance(n, dict):
-                d_union = dict_union(n, d_union) #test switching these around
+                d_union = dict_union(d_union, n)
             else:
                 print("'a' must be a list or tuple of dicts if 'b' is empty")
                 raise TypeError
@@ -86,7 +86,7 @@ def set_union(a: set | list[set] | tuple[set], b: set | None = None) -> set:
         s_union = set()
         for n in a:
             if isinstance(n, set):
-                s_union = set_union(n, s_union)
+                s_union = set_union(s_union, n)
             else:
                 print("'a' must be a list or tuple of sets if 'b' is empty")
                 raise TypeError
