@@ -8,7 +8,7 @@ pip install macrolibs
 ### typemacros
 
 ```commandline
-import macrolibss.typemacros
+import macrolibs.typemacros
 ```
 Includes:
 - standardization of unions, intersections, and compliments for all base iterables
