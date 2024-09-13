@@ -6,18 +6,15 @@ import inspect
 #Unions
 #----------------------------------------------------------------------------------------------------------------------
 
-def list_union(a: list | tuple | list[list] | tuple[list], b: list | tuple | None = None) -> list:
+def list_union(A: list | tuple | list[list] | tuple[list], B: list | tuple | None = None) -> list:
     """
     If 'b' is None, the function will perform an iterative union of all lists and tuples in 'a'.
     In this case, 'a' must be a list or tuple of exclusively lists or  tuples.
     Otherwise, perform the union of 'a' and 'b'
-    :param a: list or tuple (of lists or tuples)
-    :param b: list or tuple
-    :return: list
     """
-    if b is None:
+    if B is None:
         l_union = list()
-        for n in a:
+        for n in A:
             if isinstance(n, list | tuple):
                 l_union = list_union(l_union, n)
             else:
@@ -25,21 +22,18 @@ def list_union(a: list | tuple | list[list] | tuple[list], b: list | tuple | Non
                 raise TypeError
         return l_union
     else:
-        return list(a) + list(x for x in b if x not in a)
+        return list(A) + list(x for x in B if x not in A)
 
 
-def tuple_union(a: list | tuple | list[tuple] | tuple[tuple], b: list | tuple | None = None) -> tuple:
+def tuple_union(A: list | tuple | list[tuple] | tuple[tuple], B: list | tuple | None = None) -> tuple:
     """
     If 'b' is None, the function will perform an iterative union of all lists and tuples in 'a'.
     In this case, 'a' must be a list or tuple of exclusively lists or  tuples.
     Otherwise, perform the union of 'a' and 'b'
-    :param a: list or tuple (of lists or tuples)
-    :param b: list or tuple
-    :return: tuple
     """
-    if b is None:
+    if B is None:
         t_union = tuple()
-        for n in a:
+        for n in A:
             if isinstance(n, list | tuple):
                 t_union = tuple_union(t_union, n)
             else:
@@ -47,22 +41,19 @@ def tuple_union(a: list | tuple | list[tuple] | tuple[tuple], b: list | tuple | 
                 raise TypeError
         return t_union
     else:
-        return tuple(a) + tuple(x for x in b if x not in a)
+        return tuple(A) + tuple(x for x in B if x not in A)
 
 
-def dict_union(a: dict | list[dict] | tuple[dict], b: dict | None = None) -> dict:
+def dict_union(A: dict | list[dict] | tuple[dict], B: dict | None = None) -> dict:
     """
     If 'b' is None, the function will perform an iterative union of all dicts in 'a'.
     In this case, 'a' must be a list or tuple of exclusively dicts.
     Otherwise, perform the union of 'a' and 'b'
     (Leftmost keys have precedence)
-    :param a: dict, list, or tuple (of dicts)
-    :param b: set
-    :return: dict
     """
-    if b is None:
+    if B is None:
         d_union = dict()
-        for n in a:
+        for n in A:
             if isinstance(n, dict):
                 d_union = dict_union(d_union, n)
             else:
@@ -70,21 +61,18 @@ def dict_union(a: dict | list[dict] | tuple[dict], b: dict | None = None) -> dic
                 raise TypeError
         return d_union
     else:
-        return dict(a | b)
+        return dict(A | B)
 
 
-def set_union(a: set | list[set] | tuple[set], b: set | None = None) -> set:
+def set_union(A: set | list[set] | tuple[set], B: set | None = None) -> set:
     """
     If 'b' is None, the function will perform an iterative union of all sets in 'a'.
     In this case, 'a' must be a list or tuple of exclusively sets.
     Otherwise, perform the union of 'a' and 'b'
-    :param a: set, list, or tuple (of dicts)
-    :param b: set
-    :return: set
     """
-    if b is None:
+    if B is None:
         s_union = set()
-        for n in a:
+        for n in A:
             if isinstance(n, set):
                 s_union = set_union(s_union, n)
             else:
@@ -92,7 +80,25 @@ def set_union(a: set | list[set] | tuple[set], b: set | None = None) -> set:
                 raise TypeError
         return s_union
     else:
-        return set(a | b)
+        return set(A | B)
+
+
+def type_union(A: list | tuple | dict | set, B: list | tuple | dict | set | None = None) -> list | tuple | dict | set:
+    """General union for all types.  A and B must be the same type unless B is None
+    In this case, 'A' must be a list or tuple of exclusively sets.
+    Otherwise, perform the union of 'a' and 'b'
+    """
+    if type(A) != type(B) and B is not None:
+        print("A and B must be the same type!")
+        raise TypeError
+    elif isinstance(A, list) and (isinstance(B, list) or B is None):
+        return list_union(A, B)
+    elif isinstance(A, tuple) and (isinstance(B, tuple) or B is None):
+        return tuple_union(A, B)
+    elif isinstance(A, dict) and (isinstance(B, dict) or B is None):
+        return dict_union(A, B)
+    elif isinstance(A, set) and (isinstance(B, set) or B is None):
+        return set_union(A, B)
 
 
 #Compliments
@@ -115,6 +121,20 @@ def set_compliment(A: set, B: set) -> set:
     """Returns a set containing all members in A that are not in B"""
     return set(a for a in A if a not in B)
 
+def type_compliment(A: list | tuple | dict | set, B: list | tuple | dict | set) -> list | tuple | dict | set:
+    """General compliment for all types.  A and B must be the same type"""
+    if type(A) != type(B):
+        print("A and B must be the same type!")
+        raise TypeError
+    elif isinstance(A, list) and isinstance(B, list):
+        return list_compliment(A, B)
+    elif isinstance(A, tuple) and isinstance(B, tuple):
+        return tuple_compliment(A, B)
+    elif isinstance(A, dict) and isinstance(B, dict):
+        return dict_compliment(A, B)
+    elif isinstance(A, set) and isinstance(B, set):
+        return set_compliment(A, B)
+
 
 #Intersections
 #---------------------------------------------------------------------------------------------------------------------
@@ -136,6 +156,20 @@ def dict_intersect(A: dict, B: dict, match_vals= False) -> dict:
 def set_intersect(A: set, B: set) -> set:
     """Returns a set returning all members in A that are also in B"""
     return set(a for a in A if a in B)
+
+def type_intersect(A: list | tuple | dict | set, B: list | tuple | dict | set) -> list | tuple | dict | set:
+    """General intersection for all types.  A and B must be the same type"""
+    if type(A) != type(B):
+        print("A and B must be the same type!")
+        raise TypeError
+    elif isinstance(A, list) and isinstance(B, list):
+        return list_intersect(A, B)
+    elif isinstance(A, tuple) and isinstance(B, tuple):
+        return tuple_intersect(A, B)
+    elif isinstance(A, dict) and isinstance(B, dict):
+        return dict_intersect(A, B)
+    elif isinstance(A, set) and isinstance(B, set):
+        return set_intersect(A, B)
 
 
 #Syntax Converters
