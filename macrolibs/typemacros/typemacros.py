@@ -286,6 +286,7 @@ class copy_type():
 
 
 class maybe_type():
+    """Attempts to construct a type of 'base_type' with 'data' and returns 'data' if it fails."""
     def __new__(cls, data: Any, base_type: type) -> type:
         try:
             return base_type(data)
