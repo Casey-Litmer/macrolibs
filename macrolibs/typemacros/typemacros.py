@@ -83,7 +83,7 @@ def set_union(A: set | list[set] | tuple[set], B: set | None = None) -> set:
         return set(A | B)
 
 
-def type_union(A: list | tuple | dict | set, B: list | tuple | dict | set | None = None) -> list | tuple | dict | set:
+def type_union(A: list | tuple | dict | set , B: list | tuple | dict | set | None = None) -> list | tuple | dict | set:
     """General union for all types.  A and B must be the same type unless B is None
     In this case, 'A' must be a list or tuple of exclusively sets.
     Otherwise, perform the union of 'a' and 'b'
@@ -259,3 +259,29 @@ def maybe_arg(func, pass_to_kwargs= False):
                 raise e
 
     return wrapper
+
+
+#Functors
+#---------------------------------------------------------------------------------------------------------------------
+
+class copy_type():
+    """
+    Create a copy of a type into a new namespace.  If a namespace already exists, it will not create a new type but
+    return the already cached type.
+
+    copy_type(name, basetype) -> type
+
+    name: str
+    basetype: type
+    return: type
+    """
+    types = [int, float, str, list, tuple, dict, set, frozenset, bool, complex, bytes, bytearray, memoryview, type, object]
+    type_cache = {t.__name__:t for t in types}
+
+    def __new__(cls, name: str, basetype: type) -> type:
+        if name not in cls.type_cache:
+            cls.type_cache[name] = type(name, (basetype,), {})
+
+        return cls.type_cache[name]
+
+
