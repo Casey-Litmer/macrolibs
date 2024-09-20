@@ -266,7 +266,7 @@ def maybe_arg(func, pass_to_kwargs= False):
 
 class copy_type():
     """
-    copy_type(name: str, basetype: type) -> type
+    copy_type(name: str, basetype: type, attributes: dict) -> type
 
     Create a copy of a type into a new namespace.  If a namespace already exists, it will not create a new type but
     return the already cached type.
@@ -274,10 +274,20 @@ class copy_type():
     types = [int, float, str, list, tuple, dict, set, frozenset, bool, complex, bytes, bytearray, memoryview, type, object]
     type_cache = {t.__name__:t for t in types}
 
-    def __new__(cls, name: str, basetype: type) -> type:
+    def __new__(cls, name: str, basetype: type, attributes: dict = {}) -> type:
         if name not in cls.type_cache:
-            cls.type_cache[name] = type(name, (basetype,), {})
+            #Default __repr__
+            attributes = {"__repr__":lambda self: f"{name}({basetype(self)})"} | attributes
+
+            #Create new type
+            cls.type_cache[name] = type(name, (basetype,), attributes)
 
         return cls.type_cache[name]
 
 
+class maybe_type():
+    def __new__(cls, data: Any, base_type: type) -> type:
+        try:
+            return base_type(data)
+        except TypeError:
+            return data
