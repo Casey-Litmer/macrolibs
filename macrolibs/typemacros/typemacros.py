@@ -266,14 +266,10 @@ def maybe_arg(func, pass_to_kwargs= False):
 
 class copy_type():
     """
+    copy_type(name: str, basetype: type) -> type
+
     Create a copy of a type into a new namespace.  If a namespace already exists, it will not create a new type but
     return the already cached type.
-
-    copy_type(name, basetype) -> type
-
-    name: str
-    basetype: type
-    return: type
     """
     types = [int, float, str, list, tuple, dict, set, frozenset, bool, complex, bytes, bytearray, memoryview, type, object]
     type_cache = {t.__name__:t for t in types}
