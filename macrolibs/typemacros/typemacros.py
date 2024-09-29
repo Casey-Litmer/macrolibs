@@ -274,9 +274,16 @@ def maybe_arg(func, pass_to_kwargs= False):
     return wrapper
 
 
+def get_attributes(A: type) -> dict:
+    """Return a dictionary of name-attribute pairs of a class"""
+    return {name:getattr(A,name) for name in dir(A)}
+
+
+
 #Functors
 #---------------------------------------------------------------------------------------------------------------------
 
+#TODO: add mappings of morphisms with full inspection
 class copy_type():
     """
     copy_type(basetype: type, name: str, attributes: dict) -> type
@@ -292,8 +299,11 @@ class copy_type():
             #Default __repr__
             attributes = {"__repr__":lambda self: f"{name}({basetype(self)})"} | attributes
 
+            #attributes = [*map(lambda x:Bind(name, Bind(x)), dir(name))]
+
             #Create new type
             cls.type_cache[name] = type(name, (basetype,), attributes)
+
 
         return cls.type_cache[name]
 
