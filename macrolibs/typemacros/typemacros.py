@@ -311,8 +311,7 @@ class copy_type():
                 return wrapper
 
             #Add more to this list if shit starts breaking
-            exclude_attrs = (["__class__", "__weakref__", "__ref__", "__repr__", "__init__", "__str__", "__getattr__"]
-                             + list(attributes))  #Dont map user defined attributes!
+            exclude_attrs = dir(object) + list(attributes)  #Dont map user defined attributes!
 
             #setattrs for new_type
             for meth_name in dir(new_type):
