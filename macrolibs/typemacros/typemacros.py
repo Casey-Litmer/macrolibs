@@ -283,7 +283,7 @@ def get_attributes(A: type) -> dict:
 #Functors
 #---------------------------------------------------------------------------------------------------------------------
 
-#TODO: add mappings of morphisms with full inspection
+#TODO: UNTESTED! functor mapping of morphisms works for basic types.
 class copy_type():
     """
     copy_type(basetype: type, name: str, attributes: dict) -> type
@@ -297,13 +297,29 @@ class copy_type():
     def __new__(cls, basetype: type, name: str, attributes: dict = {}) -> type:
         if name not in cls.type_cache:
             #Default __repr__
-            attributes = {"__repr__":lambda self: f"{name}({basetype(self)})"} | attributes
-
-            #attributes = [*map(lambda x:Bind(name, Bind(x)), dir(name))]
+            new_attributes = {"__repr__":lambda self: f"{name}({basetype(self)})"} | attributes
 
             #Create new type
-            cls.type_cache[name] = type(name, (basetype,), attributes)
+            new_type = type(name, (basetype,), new_attributes)
 
+            #Map reflexive morphisms to new type
+            def wrap_end_type(f):
+                def wrapper(*args, **kwargs):
+                    result = f(*args, **kwargs)
+                    return maybe_type(new_type, result) if type(result) is basetype else result
+
+                return wrapper
+
+            #Add more to this list if shit starts breaking
+            exclude_attrs = ["__class__", "__weakref__", "__repr__"] + list(attributes)  #Dont map user defined attributes!
+
+            #setattrs for new_type
+            for meth_name in dir(new_type):
+                if meth_name not in exclude_attrs and callable(meth_attr := getattr(basetype, meth_name)):
+                    setattr(new_type, meth_name, wrap_end_type(meth_attr))
+
+            #Cache type
+            cls.type_cache[name] = new_type
 
         return cls.type_cache[name]
 

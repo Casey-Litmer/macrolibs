@@ -11,9 +11,14 @@ pip install macrolibs
 import macrolibs.typemacros
 ```
 Includes:
-- standardization of unions, intersections, and compliments for all base iterables
-- recursive find and replace for all nested data structures
-- automatic function argument reduction (reductive polymorphism)
+- standardization of **unions**, **intersections**, and **compliments** for all base iterables
+- `replace_value_nested` recursive find and replace for all nested data structures
+- `maybe_arg` automatic function argument reduction (reductive polymorphism)
+- `copy_type` functor with name cache for creating new types (also maps reflexive methods to new type)
+- `maybe_type` attempts to apply type constructor
+- `wrap_types` attempts to apply type constructor for specified types
+
+*And more!*
 
 -----------
 
