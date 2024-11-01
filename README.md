@@ -29,12 +29,4 @@ Includes:
   making the function call)
  - `full_walk` returning full paths from `os.walk`
 
------------
-
-### jsonmacros
-
-```commandline
-import macrolibs.jsonmacros
-```
-Includes:
-- json saving and loading with default format option
+- `open_json` and `save_json` with default format option
