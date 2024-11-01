@@ -304,11 +304,11 @@ class copy_type():
 
             #Map reflexive morphisms to new type
             def wrap_end_type(f):
-                def wrapper(*args, **kwargs):
+                def type_wrapper(*args, **kwargs):
                     result = f(*args, **kwargs)
                     return maybe_type(new_type, result) if type(result) is basetype else result
 
-                return wrapper
+                return type_wrapper
 
             #Add more to this list if shit starts breaking
             exclude_attrs = dir(object) + list(attributes)  #Dont map user defined attributes!
