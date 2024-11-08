@@ -9,7 +9,7 @@ def timer(print_time = True):
             time = perf_counter() - t0
 
             if print_time:
-                print(time)
+                print("time (ms):", time)
                 return result
             else:
                 return (result, time)
