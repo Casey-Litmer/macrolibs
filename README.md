@@ -35,3 +35,14 @@ Includes:
  - `full_walk` returning full paths from `os.walk`
 
 - `open_json` and `save_json` with default format option
+
+---------
+
+### misc
+
+```commandline
+import macrolibs.misc
+```
+
+Includes:
+- `profile_run` A custom profiling function similar to cProfile.run() with enhanced formatting options.
