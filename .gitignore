@@ -9,3 +9,5 @@ setup.py
 build
 dist
 *.egg-info
+
+test.py

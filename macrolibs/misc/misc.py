@@ -1,7 +1,12 @@
 import cProfile
 import pstats
+import psutil
+import os
 from io import StringIO
 import inspect
+import functools
+
+
 
 
 def profile_run(command: str, sort_by: str = 'cumtime', lines = None, precision = 6) -> None:
@@ -20,11 +25,20 @@ def profile_run(command: str, sort_by: str = 'cumtime', lines = None, precision 
     # Extract globals from the caller's frame (where the function is defined)
     caller_globals = caller_frame[0].f_globals
 
+    #Track process
+    process = psutil.Process(os.getpid())
+
+    #Get initial memory usage (in bytes)
+    mem_initial = process.memory_info().rss
+
     #Run Command
     profiler = cProfile.Profile()
     profiler.enable()
     exec(command, caller_globals, locals())
     profiler.disable()
+
+    mem_final = process.memory_info().rss
+    memory_usage = (mem_final - mem_initial) / (1024**2) #MB
 
     # Capture profiling stats
     result_stream = StringIO()
@@ -53,6 +67,22 @@ def profile_run(command: str, sort_by: str = 'cumtime', lines = None, precision 
                     parts[j] = f'{float(parts[j]):.{precision}f}'
                 lines[i] = ' '.join(parts)
 
+    #Total Memory
+    print(f"Total Memory Usage: {memory_usage} MB\n")
+    #Readout
     print('\n'.join(lines))
 
 
+
+def preserve_signature(decorator):
+    @functools.wraps(decorator)
+    def wrapper(func):
+        decfunc = decorator(func)
+
+        signature = inspect.signature(func)
+        decfunc.__signature__ = signature
+
+        functools.update_wrapper(decfunc, func)
+
+        return decfunc
+    return wrapper
