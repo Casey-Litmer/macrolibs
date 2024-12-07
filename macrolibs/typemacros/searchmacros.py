@@ -1,7 +1,7 @@
 from typing import Any
 from .typemacros import tupler
 from ._replace_value import _replace_value_recursive, _replace_value_mutable, BREAK_SEARCH
-from pickle import loads as pickle_loads, dumps as pickle_dumps
+from pickle import loads as _pickle_loads, dumps as _pickle_dumps
 
 
 
@@ -71,7 +71,7 @@ def replace_value_nested(a: list | tuple | dict | set, old_vals: tuple | Any , n
     elif mode == 'replace':
         return _replace_value_mutable(a, old_vals, new_val, callback)
     elif mode == 'copy':
-        new_a = pickle_loads(pickle_dumps(a))
+        new_a = _pickle_loads(_pickle_dumps(a))
         _replace_value_mutable(new_a, old_vals, new_val, callback)
         return new_a
     else:
