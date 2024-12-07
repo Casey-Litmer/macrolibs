@@ -45,7 +45,11 @@ def profile_run(command: str, sort_by: str = 'cumtime', lines = None, precision 
     stats = pstats.Stats(profiler, stream=result_stream)
     stats.strip_dirs().sort_stats(sort_by)
 
-    print('{' + f"--  Profile for Command:  \"{command}\"  --" + '}\n')
+    #Print header
+    header = '|' + f"  Profile for Command:  \"{command}\"  " + '|'
+    print('~' * len(header))
+    print(header)
+    print('~' * len(header), '\n')
 
     #Print all lines if lines is None
     if lines:
