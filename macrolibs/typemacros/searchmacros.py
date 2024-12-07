@@ -1,74 +1,81 @@
 from typing import Any
 from .typemacros import tupler
+from ._replace_value import _replace_value_recursive, _replace_value_mutable, BREAK_SEARCH
+from pickle import loads as pickle_loads, dumps as pickle_dumps
 
 
 
 
-def replace_value_nested(a: list | tuple | dict | set, old_vals: tuple | Any, new_val,
-                         callback=None) -> list | tuple | dict | set:
+def replace_value_nested(a: list | tuple | dict | set, old_vals: tuple | Any , new_val,
+                         callback = None, mode = 'return') -> list | tuple | dict | set | None:
     """
-    Replaces a value recursively in a data structure.  The value(s) to replace can be of any type,
-    including any type of the data structures being searched through.
+    Replaces a value(s) in a nested data structure.  The value(s) to replace can be of any type,
+    including the type of the data structures being searched through.
 
     Use 'callback' to execute code on replace.
     Callback method should be in the form:  callback(old_val, new_val) -> new_val'
     The return of the method will be the new value.
     ('old_val' will be sampled from any matching value in 'old_vals')
 
-    Example:
     def callback(old, new):
         print(f"Value {old} replaced with {new}!")
         return new
+
+    Return the BREAK_SEARCH object to end the search:
+
+    def callback(old, new):
+        global count
+        count += 1
+        return new if count <= 10 else BREAK_SEARCH
+
+    Additionally, callback may accept a 'parents' keyword that references a list of all the sequential parents
+    that the found value is nested in.
+    'parents[0]' is the immediate parent, while 'parent[-1]' is the full structure.
+
+    def callback(old, new, parents):
+        global other_value
+        if other_value in parents[0]:
+            return new
+        else:
+            return old
+
+
+    The 'mode' parameter switches between different algorithms:
+
+        - 'return' (default)
+            Uses a recursive find and replace algorithm and returns a new data structure without affecting the old one.
+            Preserves child types but reinitializes them.  This algorithm is much slower than 'replace' and is subject
+            to recursive depth limit.  Accessing 'parents' in the callback will never show updated values.
+
+        - 'replace'
+            Replaces the values in the structure and returns None.  Does not search through tuples and will keep
+            all dependencies of child types.  Accessing 'parents' in the callback may yield values that have already
+            been replaced.
+
+        - 'copy'
+            Same as 'replace' but creates a copy of the structure (fast, but high memory usage).  All internal
+            dependencies will be conserved, but any pointers to data from outside the structure will not reference
+            the cloned data.
+
 
     :param a: list, tuple, dict, or set  (all nestings allowed)
     :param old_vals: value(s) to replace
     :param new_val: value to inject
     :param callback: method::old_val -> new_val -> new_val'
+    :param mode: switches between different algorithms
     :return: list, tuple, dict, or set
     """
-    callback = callback if callback is not None else lambda old, new: new
-    old_vals = tupler(old_vals)
 
-    stack = [(a, None)]  # (current structure, parent)
-    result = None
-
-    # Process the stack iteratively
-    while stack:
-        current, parent = stack.pop()
-
-        # If the current element is one of the target values, replace it
-        if current in old_vals:
-            new_value = callback(current, new_val)
-
-            if parent is not None:
-                # Update the parent structure with the new value
-                if isinstance(parent, list):
-                    parent[parent.index(current)] = new_value
-                elif isinstance(parent, tuple):
-                    idx = parent.index(current)
-                    parent = parent[:idx] + (new_value,) + parent[idx + 1:]
-                elif isinstance(parent, dict):
-                    for k, v in parent.items():
-                        if v == current:
-                            parent[k] = new_value
-                elif isinstance(parent, set):
-                    parent.remove(current)
-                    parent.add(new_value)
-
-            continue
-
-        # If the current element is a nested structure, add its elements to the stack
-        if isinstance(current, list):
-            stack.extend((item, current) for item in current)
-        elif isinstance(current, tuple):
-            stack.extend((item, current) for item in current)
-        elif isinstance(current, set):
-            stack.extend((item, current) for item in current)
-        elif isinstance(current, dict):
-            stack.extend(((k, v), current) for k, v in current.items())
-
-    return result if result else a
-
+    if mode == 'return':
+        return _replace_value_recursive()(a, old_vals, new_val, callback)
+    elif mode == 'replace':
+        return _replace_value_mutable(a, old_vals, new_val, callback)
+    elif mode == 'copy':
+        new_a = pickle_loads(pickle_dumps(a))
+        _replace_value_mutable(new_a, old_vals, new_val, callback)
+        return new_a
+    else:
+        raise ValueError(f"{mode} is not a valid mode!\nValid modes: ['return', 'replace', 'copy']")
 
 
 
