@@ -45,6 +45,8 @@ def profile_run(command: str, sort_by: str = 'cumtime', lines = None, precision 
     stats = pstats.Stats(profiler, stream=result_stream)
     stats.strip_dirs().sort_stats(sort_by)
 
+    print('{' + f"--  Profile for Command:  \"{command}\"  --" + '}\n')
+
     #Print all lines if lines is None
     if lines:
         stats.print_stats(lines)
@@ -68,7 +70,7 @@ def profile_run(command: str, sort_by: str = 'cumtime', lines = None, precision 
                 lines[i] = ' '.join(parts)
 
     #Total Memory
-    print(f"Total Memory Usage: {memory_usage} MB\n")
+    print(f"   Total Memory Usage: {memory_usage} MB\n")
     #Readout
     print('\n'.join(lines))
 
