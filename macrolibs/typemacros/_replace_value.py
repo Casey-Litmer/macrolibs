@@ -51,6 +51,7 @@ def _replace_value_mutable(a: list | dict | set, old_vals: tuple | Any, new_val,
         elif isinstance(current, dict):
             stack.extend((v, [current] + parents) for v in current.values())
 
+    return a
 
 
 #The stack based approach is 50% faster and handles deeper recursion, but does not work with tuples.

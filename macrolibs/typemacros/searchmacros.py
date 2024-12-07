@@ -48,7 +48,7 @@ def replace_value_nested(a: list | tuple | dict | set, old_vals: tuple | Any , n
             to recursive depth limit.  Accessing 'parents' in the callback will never show updated values.
 
         - 'replace'
-            Replaces the values in the structure and returns None.  Does not search through tuples and will keep
+            Replaces the values in the structure and returns it.  Does not search through tuples and will keep
             all dependencies of child types.  Accessing 'parents' in the callback may yield values that have already
             been replaced.
 
@@ -72,8 +72,7 @@ def replace_value_nested(a: list | tuple | dict | set, old_vals: tuple | Any , n
         return _replace_value_mutable(a, old_vals, new_val, callback)
     elif mode == 'copy':
         new_a = _pickle_loads(_pickle_dumps(a))
-        _replace_value_mutable(new_a, old_vals, new_val, callback)
-        return new_a
+        return _replace_value_mutable(new_a, old_vals, new_val, callback)
     else:
         raise ValueError(f"{mode} is not a valid mode!\nValid modes: ['return', 'replace', 'copy']")
 
