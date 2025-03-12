@@ -5,7 +5,7 @@ import inspect
 
 #Unions
 #----------------------------------------------------------------------------------------------------------------------
-
+#TODO: make faster algorithms for list/tuple unions, compliments, and intersects!
 def list_union(A: list | tuple | list[list] | tuple[list], B: list | tuple | None = None) -> list:
     """
     If 'b' is None, the function will perform an iterative union of all lists and tuples in 'a'.
@@ -22,7 +22,13 @@ def list_union(A: list | tuple | list[list] | tuple[list], B: list | tuple | Non
                 raise TypeError
         return l_union
     else:
-        return list(A) + list(x for x in B if x not in A)
+        seen = set(A)
+        result = list(A)
+        for n in B:
+            if n not in seen:
+                seen.add(n)
+                result.append(n)
+        return result
 
 
 def tuple_union(A: list | tuple | list[tuple] | tuple[tuple], B: list | tuple | None = None) -> tuple:
@@ -41,7 +47,13 @@ def tuple_union(A: list | tuple | list[tuple] | tuple[tuple], B: list | tuple | 
                 raise TypeError
         return t_union
     else:
-        return tuple(A) + tuple(x for x in B if x not in A)
+        seen = set(A)
+        result = list(A)
+        for n in B:
+            if n not in seen:
+                seen.add(n)
+                result.append(n)
+        return tuple(result)
 
 
 def dict_union(A: dict | list[dict] | tuple[dict], B: dict | None = None) -> dict:
@@ -106,11 +118,21 @@ def type_union(A: list | tuple | dict | set , B: list | tuple | dict | set | Non
 
 def list_compliment(A: list, B: list) -> list:
     """Returns a list containing all items in A that are not in B"""
-    return list(a for a in A if a not in B)
+    seen = set(B)
+    result = list()
+    for n in A:
+        if n not in seen:
+            result.append(n)
+    return result
 
 def tuple_compliment(A: tuple, B: tuple) -> tuple:
     """Returns a tuple containing all items in A that are not in B"""
-    return tuple(a for a in A if a not in B)
+    seen = set(B)
+    result = list()
+    for n in A:
+        if n not in seen:
+            result.append(n)
+    return tuple(result)
 
 def dict_compliment(A: dict, B: dict, match_vals= False) -> dict:
     """Returns a dict containing all keys in A that are not in B"""
@@ -141,17 +163,27 @@ def type_compliment(A: list | tuple | dict | set, B: list | tuple | dict | set) 
 
 def list_intersect(A: list, B: list) -> list:
     """Returns a list returning all items in A that are also in B"""
-    return list(a for a in A if a in B)
+    seen = set(B)
+    result = list()
+    for n in A:
+        if n in seen:
+            result.append(n)
+    return result
 
 def tuple_intersect(A: tuple, B: tuple) -> tuple:
     """Returns a list returning all items in A that are also in B"""
-    return tuple(a for a in A if a in B)
+    seen = set(B)
+    result = list()
+    for n in A:
+        if n in seen:
+            result.append(n)
+    return tuple(result)
 
 def dict_intersect(A: dict, B: dict, match_vals= False) -> dict:
     """Returns a dict returning all items (keys:vals) in A that are also in B if match_vals is True
     else, only compares keys"""
-    return dict({key:val for key, val in A.items() if (key, val) in B.items()}) if match_vals else \
-        dict({key:A[key] for key in A if key in B})
+    return dict({key:val for key, val in A.items() if (key, val) in B.items()}) if match_vals \
+            else dict({key:A[key] for key in A if key in B})
 
 def set_intersect(A: set, B: set) -> set:
     """Returns a set returning all members in A that are also in B"""
