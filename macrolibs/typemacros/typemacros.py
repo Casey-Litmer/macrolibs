@@ -5,7 +5,6 @@ import inspect
 
 #Unions
 #----------------------------------------------------------------------------------------------------------------------
-#TODO: make faster algorithms for list/tuple unions, compliments, and intersects!
 def list_union(A: list | tuple | list[list] | tuple[list], B: list | tuple | None = None) -> list:
     """
     If 'b' is None, the function will perform an iterative union of all lists and tuples in 'a'.
