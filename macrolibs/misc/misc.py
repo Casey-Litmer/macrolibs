@@ -81,6 +81,7 @@ def profile_run(command: str, sort_by: str = 'cumtime', lines = None, precision 
 
 
 def preserve_signature(decorator):
+    '''Preserves metadata for decorated functions.'''
     @functools.wraps(decorator)
     def wrapper(func):
         decfunc = decorator(func)
