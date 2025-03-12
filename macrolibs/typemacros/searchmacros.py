@@ -54,7 +54,7 @@ def replace_value_nested(a: list | tuple | dict | set, old_vals: tuple | Any , n
 
         - 'copy'
             Same as 'replace' but creates a copy of the structure (fast, but high memory usage).  All internal
-            dependencies will be conserved, but any pointers to data from outside the structure will not reference
+            dependencies will be conserved, but any references to data from outside the structure will not reference
             the cloned data.
 
 
