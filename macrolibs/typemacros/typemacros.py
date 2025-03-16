@@ -1,5 +1,6 @@
 from types import GeneratorType
 from typing import Any
+import pickle
 import inspect
 
 
@@ -17,15 +18,15 @@ def list_union(A: list | tuple | list[list] | tuple[list], B: list | tuple | Non
             if isinstance(n, list | tuple):
                 l_union = list_union(l_union, n)
             else:
-                print("'a' must be a list or tuple of lists or tuples if 'b' is empty")
-                raise TypeError
+                raise TypeError("'a' must be a list or tuple of lists or tuples if 'b' is empty")
         return l_union
     else:
-        seen = set(A)
+        seen = set(map(lambda x: pickle.dumps(x), A))
         result = list(A)
         for n in B:
-            if n not in seen:
-                seen.add(n)
+            hash_n = pickle.dumps(n)
+            if hash_n not in seen:
+                seen.add(hash_n)
                 result.append(n)
         return result
 
@@ -37,20 +38,20 @@ def tuple_union(A: list | tuple | list[tuple] | tuple[tuple], B: list | tuple | 
     Otherwise, perform the union of 'a' and 'b'
     """
     if B is None:
-        t_union = tuple()
+        t_union = set(map(lambda x: pickle.dumps(x), A))
         for n in A:
             if isinstance(n, list | tuple):
                 t_union = tuple_union(t_union, n)
             else:
-                print("'a' must be a list or tuple of lists or tuples if 'b' is empty")
-                raise TypeError
+                raise TypeError("'a' must be a list or tuple of lists or tuples if 'b' is empty")
         return t_union
     else:
-        seen = set(A)
+        seen = set(map(lambda x: pickle.dumps(x), A))
         result = list(A)
         for n in B:
-            if n not in seen:
-                seen.add(n)
+            hash_n = pickle.dumps(n)
+            if hash_n not in seen:
+                seen.add(hash_n)
                 result.append(n)
         return tuple(result)
 
@@ -68,8 +69,7 @@ def dict_union(A: dict | list[dict] | tuple[dict], B: dict | None = None) -> dic
             if isinstance(n, dict):
                 d_union = dict_union(d_union, n)
             else:
-                print("'a' must be a list or tuple of dicts if 'b' is empty")
-                raise TypeError
+                raise TypeError("'a' must be a list or tuple of dicts if 'b' is empty")
         return d_union
     else:
         return dict(A | B)
@@ -87,8 +87,7 @@ def set_union(A: set | list[set] | tuple[set], B: set | None = None) -> set:
             if isinstance(n, set):
                 s_union = set_union(s_union, n)
             else:
-                print("'a' must be a list or tuple of sets if 'b' is empty")
-                raise TypeError
+                raise TypeError("'a' must be a list or tuple of sets if 'b' is empty")
         return s_union
     else:
         return set(A | B)
@@ -100,8 +99,7 @@ def type_union(A: list | tuple | dict | set , B: list | tuple | dict | set | Non
     Otherwise, perform the union of 'a' and 'b'
     """
     if type(A) != type(B) and B is not None:
-        print("A and B must be the same type!")
-        raise TypeError
+        raise TypeError("A and B must be the same type!")
     elif isinstance(A, list) and (isinstance(B, list) or B is None):
         return list_union(A, B)
     elif isinstance(A, tuple) and (isinstance(B, tuple) or B is None):
@@ -117,19 +115,21 @@ def type_union(A: list | tuple | dict | set , B: list | tuple | dict | set | Non
 
 def list_compliment(A: list, B: list) -> list:
     """Returns a list containing all items in A that are not in B"""
-    seen = set(B)
+    seen = set(map(lambda x: pickle.dumps(x), B))
     result = list()
     for n in A:
-        if n not in seen:
+        hash_n = pickle.dumps(n)
+        if hash_n not in seen:
             result.append(n)
     return result
 
 def tuple_compliment(A: tuple, B: tuple) -> tuple:
     """Returns a tuple containing all items in A that are not in B"""
-    seen = set(B)
+    seen = set(map(lambda x: pickle.dumps(x), B))
     result = list()
     for n in A:
-        if n not in seen:
+        hash_n = pickle.dumps(n)
+        if hash_n not in seen:
             result.append(n)
     return tuple(result)
 
@@ -145,8 +145,7 @@ def set_compliment(A: set, B: set) -> set:
 def type_compliment(A: list | tuple | dict | set, B: list | tuple | dict | set) -> list | tuple | dict | set:
     """General compliment for all types.  A and B must be the same type"""
     if type(A) != type(B):
-        print("A and B must be the same type!")
-        raise TypeError
+        raise TypeError("A and B must be the same type!")
     elif isinstance(A, list) and isinstance(B, list):
         return list_compliment(A, B)
     elif isinstance(A, tuple) and isinstance(B, tuple):
@@ -162,19 +161,21 @@ def type_compliment(A: list | tuple | dict | set, B: list | tuple | dict | set) 
 
 def list_intersect(A: list, B: list) -> list:
     """Returns a list returning all items in A that are also in B"""
-    seen = set(B)
+    seen = set(map(lambda x: pickle.dumps(x), B))
     result = list()
     for n in A:
-        if n in seen:
+        hash_n = pickle.dumps(n)
+        if hash_n in seen:
             result.append(n)
     return result
 
 def tuple_intersect(A: tuple, B: tuple) -> tuple:
     """Returns a list returning all items in A that are also in B"""
-    seen = set(B)
+    seen = set(map(lambda x: pickle.dumps(x), B))
     result = list()
     for n in A:
-        if n in seen:
+        hash_n = pickle.dumps(n)
+        if hash_n in seen:
             result.append(n)
     return tuple(result)
 
@@ -191,8 +192,7 @@ def set_intersect(A: set, B: set) -> set:
 def type_intersect(A: list | tuple | dict | set, B: list | tuple | dict | set) -> list | tuple | dict | set:
     """General intersection for all types.  A and B must be the same type"""
     if type(A) != type(B):
-        print("A and B must be the same type!")
-        raise TypeError
+        raise TypeError("A and B must be the same type!")
     elif isinstance(A, list) and isinstance(B, list):
         return list_intersect(A, B)
     elif isinstance(A, tuple) and isinstance(B, tuple):
