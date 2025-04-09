@@ -23,7 +23,7 @@ def _replace_value_mutable(a: list | dict | set, old_vals: tuple | Any, new_val,
             new_value = maybe_arg(callback)(current, new_val, parents = parents)
 
             #Break on token
-            if new_value == BREAK_SEARCH:
+            if new_value is BREAK_SEARCH:
                 return None
 
             if parents:
@@ -70,12 +70,12 @@ class _replace_value_recursive():
         old_vals = tupler(old_vals)
 
         if a in old_vals:
-            result = maybe_arg(callback)(a, new_val, parents = parents)
-            if result == BREAK_SEARCH:
+            new_value = maybe_arg(callback)(a, new_val, parents = parents)
+            if new_value is BREAK_SEARCH:
                 self.broken = True
                 return a
             else:
-                return result
+                return new_value
 
         elif isinstance(a, list):
             return type(a)(self(x, old_vals, new_val, callback, [a] + parents) for x in a)
