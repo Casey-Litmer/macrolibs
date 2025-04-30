@@ -11,3 +11,4 @@ dist
 *.egg-info
 
 test.py
+testing.py

@@ -30,6 +30,8 @@ def list_union(A: list | tuple | list[list] | tuple[list], B: list | tuple | Non
                 result.append(n)
         return result
 
+#PROBLEM: Some types are un-pickleable! use hashable_repr instead of pickle!  (Still needs testing)
+
 
 def tuple_union(A: list | tuple | list[tuple] | tuple[tuple], B: list | tuple | None = None) -> tuple:
     """
