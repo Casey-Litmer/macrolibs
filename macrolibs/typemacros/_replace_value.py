@@ -59,14 +59,12 @@ class _replace_value_recursive():
     def __init__(self):
         self.broken = False
 
-    def __call__(self, a: list | tuple | dict | set, old_vals: tuple | Any, new_val,
-                                callback=None, parents=[]) -> list | tuple | dict | set:
+    def __call__(self, a: list | tuple | dict | set, old_vals: tuple | Any, new_val, callback=None, parents=[]) -> list | tuple | dict | set:
         #More memory efficient to break early
         if self.broken:
             return a
 
         callback = callback if callback is not None else lambda old, new: new
-
         old_vals = tupler(old_vals)
 
         if a in old_vals:
