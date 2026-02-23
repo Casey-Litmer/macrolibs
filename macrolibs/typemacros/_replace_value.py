@@ -6,8 +6,7 @@ from .typemacros import tupler, maybe_arg
 BREAK_SEARCH = object()
 
 
-def _replace_value_mutable(a: list | dict | set, old_vals: tuple | Any, new_val,callback = None) -> None:
-    """"""
+def _replace_value_mutable(a: list | dict | set, old_vals: tuple | Any, new_val,callback = None) -> list | dict | set:
     callback = callback if callback is not None else lambda old, new: new
     old_vals = tupler(old_vals)
 
@@ -24,8 +23,8 @@ def _replace_value_mutable(a: list | dict | set, old_vals: tuple | Any, new_val,
 
             #Break on token
             if new_value is BREAK_SEARCH:
-                return None
-
+                return a
+            
             if parents:
                 #Get first parent from list
                 parent = parents[0]
@@ -40,7 +39,6 @@ def _replace_value_mutable(a: list | dict | set, old_vals: tuple | Any, new_val,
                 elif isinstance(parent, set):
                     parent.remove(current)
                     parent.add(new_value)
-
             continue
 
         #Append Stack for each item in the iterable and join parents list

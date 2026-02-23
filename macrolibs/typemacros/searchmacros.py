@@ -39,7 +39,6 @@ def replace_value_nested(a: list | tuple | dict | set, old_vals: tuple | Any , n
         else:
             return old
 
-
     The 'mode' parameter switches between different algorithms:
 
         - 'return' (default)
@@ -69,8 +68,12 @@ def replace_value_nested(a: list | tuple | dict | set, old_vals: tuple | Any , n
     if mode == 'return':
         return _replace_value_recursive()(a, old_vals, new_val, callback)
     elif mode == 'replace':
+        if isinstance(a, tuple):
+            raise ValueError("Cannot replace a tuple")
         return _replace_value_mutable(a, old_vals, new_val, callback)
     elif mode == 'copy':
+        if isinstance(a, tuple):
+            raise ValueError("Cannot replace a tuple")
         new_a = _pickle_loads(_pickle_dumps(a))
         return _replace_value_mutable(new_a, old_vals, new_val, callback)
     else:

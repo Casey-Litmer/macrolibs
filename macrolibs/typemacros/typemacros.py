@@ -2,6 +2,7 @@ from types import GeneratorType
 from typing import Any
 import pickle
 import inspect
+from .hashmacros import hashable_repr
 
 
 #Unions
@@ -21,16 +22,14 @@ def list_union(A: list | tuple | list[list] | tuple[list], B: list | tuple | Non
                 raise TypeError("'a' must be a list or tuple of lists or tuples if 'b' is empty")
         return l_union
     else:
-        seen = set(map(lambda x: pickle.dumps(x), A))
-        result = list(A)
+        seen = set(map(hashable_repr, A))
+        result = list_union(list(map(lambda a: [a], A))) # Makes sure we dedup A
         for n in B:
-            hash_n = pickle.dumps(n)
+            hash_n = hashable_repr(n)
             if hash_n not in seen:
                 seen.add(hash_n)
                 result.append(n)
         return result
-
-#PROBLEM: Some types are un-pickleable! use hashable_repr instead of pickle!  (Still needs testing)
 
 
 def tuple_union(A: list | tuple | list[tuple] | tuple[tuple], B: list | tuple | None = None) -> tuple:
@@ -40,7 +39,7 @@ def tuple_union(A: list | tuple | list[tuple] | tuple[tuple], B: list | tuple | 
     Otherwise, perform the union of 'a' and 'b'
     """
     if B is None:
-        t_union = set(map(lambda x: pickle.dumps(x), A))
+        t_union = ()
         for n in A:
             if isinstance(n, list | tuple):
                 t_union = tuple_union(t_union, n)
@@ -48,10 +47,10 @@ def tuple_union(A: list | tuple | list[tuple] | tuple[tuple], B: list | tuple | 
                 raise TypeError("'a' must be a list or tuple of lists or tuples if 'b' is empty")
         return t_union
     else:
-        seen = set(map(lambda x: pickle.dumps(x), A))
-        result = list(A)
+        seen = set(map(hashable_repr, A))
+        result = list_union(list(map(lambda a: [a], A))) # Makes sure we dedup A
         for n in B:
-            hash_n = pickle.dumps(n)
+            hash_n = hashable_repr(n)
             if hash_n not in seen:
                 seen.add(hash_n)
                 result.append(n)
@@ -74,6 +73,8 @@ def dict_union(A: dict | list[dict] | tuple[dict], B: dict | None = None) -> dic
                 raise TypeError("'a' must be a list or tuple of dicts if 'b' is empty")
         return d_union
     else:
+        if isinstance(A, (list, tuple)):
+            raise TypeError("'a' must be a list or tuple of dicts if 'b' is empty")
         return dict(A | B)
 
 
@@ -92,6 +93,8 @@ def set_union(A: set | list[set] | tuple[set], B: set | None = None) -> set:
                 raise TypeError("'a' must be a list or tuple of sets if 'b' is empty")
         return s_union
     else:
+        if isinstance(A, (list, tuple)):
+            raise TypeError("'a' must be a list or tuple of sets if 'b' is empty")
         return set(A | B)
 
 
@@ -102,7 +105,7 @@ def type_union(A: list | tuple | dict | set , B: list | tuple | dict | set | Non
     """
     if type(A) != type(B) and B is not None:
         raise TypeError("A and B must be the same type!")
-    elif isinstance(A, list) and (isinstance(B, list) or B is None):
+    if isinstance(A, list) and (isinstance(B, list) or B is None):
         return list_union(A, B)
     elif isinstance(A, tuple) and (isinstance(B, tuple) or B is None):
         return tuple_union(A, B)
@@ -110,6 +113,8 @@ def type_union(A: list | tuple | dict | set , B: list | tuple | dict | set | Non
         return dict_union(A, B)
     elif isinstance(A, set) and (isinstance(B, set) or B is None):
         return set_union(A, B)
+    else:
+        raise TypeError(f"type_union(A: ${type(A)}, B: ${type(B)})\nWrong type signature")
 
 
 #Compliments
@@ -117,23 +122,13 @@ def type_union(A: list | tuple | dict | set , B: list | tuple | dict | set | Non
 
 def list_compliment(A: list, B: list) -> list:
     """Returns a list containing all items in A that are not in B"""
-    seen = set(map(lambda x: pickle.dumps(x), B))
-    result = list()
-    for n in A:
-        hash_n = pickle.dumps(n)
-        if hash_n not in seen:
-            result.append(n)
-    return result
+    seen = set(map(hashable_repr, B))
+    return [n for n in A if hashable_repr(n) not in seen]
 
 def tuple_compliment(A: tuple, B: tuple) -> tuple:
     """Returns a tuple containing all items in A that are not in B"""
-    seen = set(map(lambda x: pickle.dumps(x), B))
-    result = list()
-    for n in A:
-        hash_n = pickle.dumps(n)
-        if hash_n not in seen:
-            result.append(n)
-    return tuple(result)
+    seen = set(map(hashable_repr, B))
+    return tuple(n for n in A if hashable_repr(n) not in seen)
 
 def dict_compliment(A: dict, B: dict, match_vals= False) -> dict:
     """Returns a dict containing all keys in A that are not in B"""
@@ -148,7 +143,7 @@ def type_compliment(A: list | tuple | dict | set, B: list | tuple | dict | set) 
     """General compliment for all types.  A and B must be the same type"""
     if type(A) != type(B):
         raise TypeError("A and B must be the same type!")
-    elif isinstance(A, list) and isinstance(B, list):
+    if isinstance(A, list) and isinstance(B, list):
         return list_compliment(A, B)
     elif isinstance(A, tuple) and isinstance(B, tuple):
         return tuple_compliment(A, B)
@@ -156,6 +151,8 @@ def type_compliment(A: list | tuple | dict | set, B: list | tuple | dict | set) 
         return dict_compliment(A, B)
     elif isinstance(A, set) and isinstance(B, set):
         return set_compliment(A, B)
+    else:
+        raise TypeError(f"type_compliment(A: ${type(A)}, B: ${type(B)})\nWrong type signature")
 
 
 #Intersections
@@ -163,23 +160,13 @@ def type_compliment(A: list | tuple | dict | set, B: list | tuple | dict | set) 
 
 def list_intersect(A: list, B: list) -> list:
     """Returns a list returning all items in A that are also in B"""
-    seen = set(map(lambda x: pickle.dumps(x), B))
-    result = list()
-    for n in A:
-        hash_n = pickle.dumps(n)
-        if hash_n in seen:
-            result.append(n)
-    return result
+    seen = set(map(hashable_repr, B))
+    return [n for n in A if hashable_repr(n) in seen]
 
 def tuple_intersect(A: tuple, B: tuple) -> tuple:
     """Returns a list returning all items in A that are also in B"""
-    seen = set(map(lambda x: pickle.dumps(x), B))
-    result = list()
-    for n in A:
-        hash_n = pickle.dumps(n)
-        if hash_n in seen:
-            result.append(n)
-    return tuple(result)
+    seen = set(map(hashable_repr, B))
+    return tuple([n for n in A if hashable_repr(n) in seen])
 
 def dict_intersect(A: dict, B: dict, match_vals= False) -> dict:
     """Returns a dict returning all items (keys:vals) in A that are also in B if match_vals is True
@@ -191,18 +178,20 @@ def set_intersect(A: set, B: set) -> set:
     """Returns a set returning all members in A that are also in B"""
     return set(a for a in A if a in B)
 
-def type_intersect(A: list | tuple | dict | set, B: list | tuple | dict | set) -> list | tuple | dict | set:
-    """General intersection for all types.  A and B must be the same type"""
+def type_intersect(A: list | tuple | dict | set, B: list | tuple | dict | set, match_vals= False) -> list | tuple | dict | set:
+    """General intersection for all types.  A and B must be the same type. Pass match_vals on to dicts"""
     if type(A) != type(B):
         raise TypeError("A and B must be the same type!")
-    elif isinstance(A, list) and isinstance(B, list):
+    if isinstance(A, list) and isinstance(B, list):
         return list_intersect(A, B)
     elif isinstance(A, tuple) and isinstance(B, tuple):
         return tuple_intersect(A, B)
     elif isinstance(A, dict) and isinstance(B, dict):
-        return dict_intersect(A, B)
+        return dict_intersect(A, B, match_vals)
     elif isinstance(A, set) and isinstance(B, set):
         return set_intersect(A, B)
+    else:
+        raise TypeError(f"type_union(A: ${type(A)}, B: ${type(B)})\nWrong type signature")
 
 
 #Syntax Converters
@@ -217,8 +206,6 @@ def tupler(a: tuple | Any) -> tuple:
         return tuple(a)
     else:
         return (a,)
-
-
 
 
 #Function Macros
