@@ -1,9 +1,10 @@
 from types import GeneratorType
-from typing import Any
-import pickle
+from typing import Any, TypeVar
 import inspect
 from .hashmacros import hashable_repr
 
+
+Iterables = TypeVar('Iterables', list, tuple, dict, set)
 
 #Unions
 #----------------------------------------------------------------------------------------------------------------------
@@ -98,7 +99,7 @@ def set_union(A: set | list[set] | tuple[set], B: set | None = None) -> set:
         return set(A | B)
 
 
-def type_union(A: list | tuple | dict | set , B: list | tuple | dict | set | None = None) -> list | tuple | dict | set:
+def type_union(A: Iterables , B: Iterables | None = None) -> Iterables:
     """General union for all types.  A and B must be the same type unless B is None
     In this case, 'A' must be a list or tuple of exclusively sets.
     Otherwise, perform the union of 'a' and 'b'
@@ -139,7 +140,7 @@ def set_compliment(A: set, B: set) -> set:
     """Returns a set containing all members in A that are not in B"""
     return set(a for a in A if a not in B)
 
-def type_compliment(A: list | tuple | dict | set, B: list | tuple | dict | set) -> list | tuple | dict | set:
+def type_compliment(A: Iterables, B: Iterables) -> Iterables:
     """General compliment for all types.  A and B must be the same type"""
     if type(A) != type(B):
         raise TypeError("A and B must be the same type!")
@@ -178,7 +179,7 @@ def set_intersect(A: set, B: set) -> set:
     """Returns a set returning all members in A that are also in B"""
     return set(a for a in A if a in B)
 
-def type_intersect(A: list | tuple | dict | set, B: list | tuple | dict | set, match_vals= False) -> list | tuple | dict | set:
+def type_intersect(A: Iterables, B: Iterables, match_vals= False) -> Iterables:
     """General intersection for all types.  A and B must be the same type. Pass match_vals on to dicts"""
     if type(A) != type(B):
         raise TypeError("A and B must be the same type!")
@@ -274,7 +275,8 @@ class copy_type():
     types = [int, float, str, list, tuple, dict, set, frozenset, bool, complex, bytes, bytearray, memoryview, type, object]
     type_cache = {t.__name__:t for t in types}
 
-    def __new__(cls, basetype: type, name: str, attributes: dict = {}) -> type:
+    def __new__(cls, basetype: type, name: str, attributes: dict | None = None) -> type:
+        attributes = attributes if attributes is not None else {}
         if name not in cls.type_cache:
             #Default __repr__
             new_attributes = {"__repr__":lambda self: f"{name}({basetype(self)})"} | attributes
@@ -304,7 +306,7 @@ class copy_type():
         return cls.type_cache[name]
 
 
-def maybe_type(base_type: type, data: Any) -> type:
+def maybe_type(base_type: type, data: Any) -> Any:
     """Attempts to construct a type of 'base_type' with 'data' and returns 'data' if it fails."""
     try:
         return base_type(data)
@@ -312,7 +314,7 @@ def maybe_type(base_type: type, data: Any) -> type:
         return data
 
 
-def wrap_types(wrap: type, data: Any, base_types = ()) -> type:
+def wrap_types(wrap: type, data: Any, base_types = ()) -> Any:
     """Attempts to apply a type constructor 'wrap' on 'data' if data is/in 'base_types'"""
     if type(base_types) is type:
         base_types = (base_types,)

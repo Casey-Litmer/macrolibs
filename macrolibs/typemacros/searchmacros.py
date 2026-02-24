@@ -1,13 +1,14 @@
-from typing import Any
+from typing import Any, TypeVar
 from .typemacros import tupler
 from ._replace_value import _replace_value_recursive, _replace_value_mutable, BREAK_SEARCH
-from pickle import loads as _pickle_loads, dumps as _pickle_dumps
+from copy import deepcopy
 
 
 
 
-def replace_value_nested(a: list | tuple | dict | set, old_vals: tuple | Any , new_val,
-                         callback = None, mode = 'return') -> list | tuple | dict | set | None:
+Iterables = TypeVar('Iterables', list, tuple, dict, set) 
+
+def replace_value_nested(a: Iterables, old_vals: tuple | Any , new_val, callback = None, mode = 'return') -> Iterables:
     """
     Replaces a value(s) in a nested data structure.  The value(s) to replace can be of any type,
     including the type of the data structures being searched through.
@@ -74,7 +75,7 @@ def replace_value_nested(a: list | tuple | dict | set, old_vals: tuple | Any , n
     elif mode == 'copy':
         if isinstance(a, tuple):
             raise ValueError("Cannot replace a tuple")
-        new_a = _pickle_loads(_pickle_dumps(a))
+        new_a = deepcopy(a)
         return _replace_value_mutable(new_a, old_vals, new_val, callback)
     else:
         raise ValueError(f"{mode} is not a valid mode!\nValid modes: ['return', 'replace', 'copy']")
@@ -96,5 +97,3 @@ def find_nth(string: str, sub_str: str, n: int, idx = 0) -> int:
             return idx + index
     else:
         return -1
-
-

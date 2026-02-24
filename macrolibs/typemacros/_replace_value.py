@@ -1,12 +1,13 @@
-from typing import Any
+from typing import Any, TypeVar
 from .typemacros import tupler, maybe_arg
 
 
 #Custom token to break a search in a callback.
 BREAK_SEARCH = object()
 
+Iterables = TypeVar('Iterables', list, tuple, dict, set)
 
-def _replace_value_mutable(a: list | dict | set, old_vals: tuple | Any, new_val,callback = None) -> list | dict | set:
+def _replace_value_mutable(a: Iterables, old_vals: tuple | Any, new_val,callback = None) -> Iterables:
     callback = callback if callback is not None else lambda old, new: new
     old_vals = tupler(old_vals)
 
@@ -57,11 +58,12 @@ class _replace_value_recursive():
     def __init__(self):
         self.broken = False
 
-    def __call__(self, a: list | tuple | dict | set, old_vals: tuple | Any, new_val, callback=None, parents=[]) -> list | tuple | dict | set:
+    def __call__(self, a: Iterables, old_vals: tuple | Any, new_val, callback=None, parents=None) -> Iterables:
         #More memory efficient to break early
         if self.broken:
             return a
-
+        
+        parents = [] if parents is None else parents # Fix mutable default argument
         callback = callback if callback is not None else lambda old, new: new
         old_vals = tupler(old_vals)
 

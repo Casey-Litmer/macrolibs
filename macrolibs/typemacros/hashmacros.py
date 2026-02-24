@@ -1,9 +1,10 @@
 from pickle import dumps, PicklingError
+from types import MethodType
 
 
 def hashable_repr(obj):
     """Create a recursively hashable representation of any object."""
-    if isinstance(obj, (str, int, float, bool, type(None))):
+    if isinstance(obj, (str, int, float, bool, type(None), bytes)):
         return obj
     # Use specific type checks and prepend a type identifier
     elif isinstance(obj, list):
@@ -12,13 +13,12 @@ def hashable_repr(obj):
         return ('__tuple__',) + tuple(hashable_repr(i) for i in obj)
     elif isinstance(obj, dict):
         # Sort items to make dict representation deterministic
-        return ('__dict__',) + tuple(sorted((hashable_repr(k), hashable_repr(v)) for k, v in obj.items()))
+        return ('__dict__',) + tuple(sorted(((hashable_repr(k), hashable_repr(v)) for k, v in obj.items()), key=lambda x: str(x[0])))
     elif isinstance(obj, set):
         # Sort elements to make set representation deterministic
-        return ('__set__',) + tuple(sorted(hashable_repr(i) for i in obj))
-    elif hasattr(obj, '__dict__'):
-        # For class instances, include class name and represent its __dict__
-        return ('__instance__', obj.__class__.__name__) + hashable_repr(vars(obj))
+        return ('__set__',) + tuple(sorted((hashable_repr(i) for i in obj), key=str))
+    elif isinstance(obj, MethodType) or hasattr(obj, '__dict__'):
+        return (str(type(obj)), id(obj))
     else:
         # Fallback for other types.
         try:
