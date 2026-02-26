@@ -8,7 +8,8 @@ BREAK_SEARCH = object()
 Iterables = TypeVar('Iterables', list, tuple, dict, set)
 
 def _replace_value_mutable(a: Iterables, old_vals: tuple | Any, new_val,callback = None) -> Iterables:
-    callback = callback if callback is not None else lambda old, new: new
+    no_callback = callback is None
+    callback = callback if callback is not None else lambda old, new, parents: new
     old_vals = tupler(old_vals)
 
     stack = [(a, [])]  # (current structure, parents)
@@ -20,7 +21,9 @@ def _replace_value_mutable(a: Iterables, old_vals: tuple | Any, new_val,callback
 
         #Replace the current element
         if current in old_vals:
-            new_value = maybe_arg(callback)(current, new_val, parents = parents)
+            # (Optimization) Skip maybe_arg for default callback 
+            m_callback = callback if no_callback else maybe_arg(callback)
+            new_value = m_callback(current, new_val, parents = parents)
 
             #Break on token
             if new_value is BREAK_SEARCH:
@@ -64,11 +67,14 @@ class _replace_value_recursive():
             return a
         
         parents = [] if parents is None else parents # Fix mutable default argument
-        callback = callback if callback is not None else lambda old, new: new
+        initial_callback = callback
+        callback = callback if callback is not None else lambda old, new, parents: new
         old_vals = tupler(old_vals)
 
         if a in old_vals:
-            new_value = maybe_arg(callback)(a, new_val, parents = parents)
+            # (Optimization) Skip maybe_arg for default callback 
+            m_callback = callback if initial_callback is None else maybe_arg(callback)
+            new_value = m_callback(a, new_val, parents = parents)
             if new_value is BREAK_SEARCH:
                 self.broken = True
                 return a
@@ -76,12 +82,12 @@ class _replace_value_recursive():
                 return new_value
 
         elif isinstance(a, list):
-            return type(a)(self(x, old_vals, new_val, callback, [a] + parents) for x in a)
+            return type(a)(self(x, old_vals, new_val, initial_callback, [a] + parents) for x in a)
         elif isinstance(a, tuple):
-            return type(a)(self(x, old_vals, new_val, callback, [a] + parents) for x in a)
+            return type(a)(self(x, old_vals, new_val, initial_callback, [a] + parents) for x in a)
         elif isinstance(a, dict):
-            return type(a)({k: self(v, old_vals, new_val, callback, [a] + parents) for k, v in a.items()})
+            return type(a)({k: self(v, old_vals, new_val, initial_callback, [a] + parents) for k, v in a.items()})
         elif isinstance(a, set):
-            return type(a)(self(x, old_vals, new_val, callback, [a] + parents) for x in a)
+            return type(a)(self(x, old_vals, new_val, initial_callback, [a] + parents) for x in a)
         else:
             return a

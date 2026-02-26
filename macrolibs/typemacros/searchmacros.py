@@ -1,5 +1,4 @@
 from typing import Any, TypeVar
-from .typemacros import tupler
 from ._replace_value import _replace_value_recursive, _replace_value_mutable, BREAK_SEARCH
 from copy import deepcopy
 
