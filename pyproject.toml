@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "macrolibs"
+version = "0.0.09"
+description = "All of my macros in one place!"
+readme = { file = "README.md", content-type = "text/markdown" }
+requires-python = ">=3.6"
+
+authors = [
+    { name = "Casey Litmer", email = "litmerc@msn.com" }
+]
+
+license = { text = "MIT" }
+
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+
+dependencies = [
+    "psutil"
+]
+
+[project.optional-dependencies]
+dev = [
+    "build",
+    "twine",
+]
+
+[project.urls]
+Homepage = "https://github.com/Casey-Litmer/macrolibs"
+
+[tool.setuptools.packages.find]
+where = ["."]

@@ -2,8 +2,6 @@
 
 commandmenu_config.json
 
-setup.py
-
 *.pyc
 
 build
