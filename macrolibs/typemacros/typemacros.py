@@ -8,52 +8,74 @@ Iterables = TypeVar('Iterables', list, tuple, dict, set)
 
 #Unions
 #----------------------------------------------------------------------------------------------------------------------
-def list_union(A: list | tuple | list[list] | tuple[list], B: list | tuple | None = None) -> list:
+def list_union(
+        A: list | tuple | list[list] | tuple[list], 
+        B: list | tuple | None = None,
+        compare_as = lambda x:x
+    ) -> list:
     """
     If 'b' is None, the function will perform an iterative union of all lists and tuples in 'a'.
     In this case, 'a' must be a list or tuple of exclusively lists or  tuples.
     Otherwise, perform the union of 'a' and 'b'
+    Use 'compare_as' to specify a key function for comparison.
     """
     if B is None:
         l_union = list()
         for n in A:
             if isinstance(n, list | tuple):
-                l_union = list_union(l_union, n)
+                l_union = list_union(l_union, n, compare_as)
             else:
                 raise TypeError("'a' must be a list or tuple of lists or tuples if 'b' is empty")
         return l_union
     else:
-        seen = set(map(hashable_repr, A))
-        result = list_union(list(map(lambda a: [a], A))) # Makes sure we dedup A
+        compare = lambda x: hashable_repr(compare_as(x))
+        seen = set()
+        result = []
+        for n in A:
+            h = compare(n)
+            if h not in seen:
+                seen.add(h)
+                result.append(n)
         for n in B:
-            hash_n = hashable_repr(n)
-            if hash_n not in seen:
-                seen.add(hash_n)
+            h = compare(n)
+            if h not in seen:
+                seen.add(h)
                 result.append(n)
         return result
 
 
-def tuple_union(A: list | tuple | list[tuple] | tuple[tuple], B: list | tuple | None = None) -> tuple:
+def tuple_union(
+        A: list | tuple | list[tuple] | tuple[tuple], 
+        B: list | tuple | None = None, 
+        compare_as = lambda x:x
+    ) -> tuple:
     """
     If 'b' is None, the function will perform an iterative union of all lists and tuples in 'a'.
     In this case, 'a' must be a list or tuple of exclusively lists or  tuples.
     Otherwise, perform the union of 'a' and 'b'
+    Use 'compare_as' to specify a key function for comparison.
     """
     if B is None:
         t_union = ()
         for n in A:
             if isinstance(n, list | tuple):
-                t_union = tuple_union(t_union, n)
+                t_union = tuple_union(t_union, n, compare_as)
             else:
                 raise TypeError("'a' must be a list or tuple of lists or tuples if 'b' is empty")
         return t_union
     else:
-        seen = set(map(hashable_repr, A))
-        result = list_union(list(map(lambda a: [a], A))) # Makes sure we dedup A
+        compare = lambda x: hashable_repr(compare_as(x))
+        seen = set()
+        result = []
+        for n in A:
+            h = compare(n)
+            if h not in seen:
+                seen.add(h)
+                result.append(n)
         for n in B:
-            hash_n = hashable_repr(n)
-            if hash_n not in seen:
-                seen.add(hash_n)
+            h = compare(n)
+            if h not in seen:
+                seen.add(h)
                 result.append(n)
         return tuple(result)
 
@@ -99,17 +121,18 @@ def set_union(A: set | list[set] | tuple[set], B: set | None = None) -> set:
         return set(A | B)
 
 
-def type_union(A: Iterables , B: Iterables | None = None) -> Iterables:
+def type_union(A: Iterables , B: Iterables | None = None, compare_as = lambda x:x) -> Iterables:
     """General union for all types.  A and B must be the same type unless B is None
     In this case, 'A' must be a list or tuple of exclusively sets.
     Otherwise, perform the union of 'a' and 'b'
+    Use 'compare_as' to specify a key function for comparison.
     """
     if type(A) != type(B) and B is not None:
         raise TypeError("A and B must be the same type!")
     if isinstance(A, list) and (isinstance(B, list) or B is None):
-        return list_union(A, B)
+        return list_union(A, B, compare_as)
     elif isinstance(A, tuple) and (isinstance(B, tuple) or B is None):
-        return tuple_union(A, B)
+        return tuple_union(A, B, compare_as)
     elif isinstance(A, dict) and (isinstance(B, dict) or B is None):
         return dict_union(A, B)
     elif isinstance(A, set) and (isinstance(B, set) or B is None):
@@ -121,15 +144,19 @@ def type_union(A: Iterables , B: Iterables | None = None) -> Iterables:
 #Compliments
 #-------------------------------------------------------------------------------------------------------------------
 
-def list_compliment(A: list, B: list) -> list:
-    """Returns a list containing all items in A that are not in B"""
-    seen = set(map(hashable_repr, B))
-    return [n for n in A if hashable_repr(n) not in seen]
+def list_compliment(A: list, B: list, compare_as = lambda x:x) -> list:
+    """Returns a list containing all items in A that are not in B.
+    Use 'compare_as' to specify a key function for comparison."""
+    compare = lambda x: hashable_repr(compare_as(x))
+    seen = set(map(compare, B))
+    return [n for n in A if compare(n) not in seen]
 
-def tuple_compliment(A: tuple, B: tuple) -> tuple:
-    """Returns a tuple containing all items in A that are not in B"""
-    seen = set(map(hashable_repr, B))
-    return tuple(n for n in A if hashable_repr(n) not in seen)
+def tuple_compliment(A: tuple, B: tuple, compare_as = lambda x:x) -> tuple:
+    """Returns a tuple containing all items in A that are not in B.
+    Use 'compare_as' to specify a key function for comparison."""
+    compare = lambda x: hashable_repr(compare_as(x))
+    seen = set(map(compare, B))
+    return tuple(n for n in A if compare(n) not in seen)
 
 def dict_compliment(A: dict, B: dict, match_vals= False) -> dict:
     """Returns a dict containing all keys in A that are not in B"""
@@ -140,14 +167,15 @@ def set_compliment(A: set, B: set) -> set:
     """Returns a set containing all members in A that are not in B"""
     return set(a for a in A if a not in B)
 
-def type_compliment(A: Iterables, B: Iterables) -> Iterables:
-    """General compliment for all types.  A and B must be the same type"""
+def type_compliment(A: Iterables, B: Iterables, compare_as = lambda x:x) -> Iterables:
+    """General compliment for all types.  A and B must be the same type.
+    Use 'compare_as' to specify a key function for comparison."""
     if type(A) != type(B):
         raise TypeError("A and B must be the same type!")
     if isinstance(A, list) and isinstance(B, list):
-        return list_compliment(A, B)
+        return list_compliment(A, B, compare_as)
     elif isinstance(A, tuple) and isinstance(B, tuple):
-        return tuple_compliment(A, B)
+        return tuple_compliment(A, B, compare_as)
     elif isinstance(A, dict) and isinstance(B, dict):
         return dict_compliment(A, B)
     elif isinstance(A, set) and isinstance(B, set):
@@ -159,15 +187,19 @@ def type_compliment(A: Iterables, B: Iterables) -> Iterables:
 #Intersections
 #---------------------------------------------------------------------------------------------------------------------
 
-def list_intersect(A: list, B: list) -> list:
-    """Returns a list returning all items in A that are also in B"""
-    seen = set(map(hashable_repr, B))
-    return [n for n in A if hashable_repr(n) in seen]
+def list_intersect(A: list, B: list, compare_as = lambda x:x) -> list:
+    """Returns a list returning all items in A that are also in B.
+    Use 'compare_as' to specify a key function for comparison."""
+    compare = lambda x: hashable_repr(compare_as(x))
+    seen = set(map(compare, B))
+    return [n for n in A if compare(n) in seen]
 
-def tuple_intersect(A: tuple, B: tuple) -> tuple:
-    """Returns a list returning all items in A that are also in B"""
-    seen = set(map(hashable_repr, B))
-    return tuple([n for n in A if hashable_repr(n) in seen])
+def tuple_intersect(A: tuple, B: tuple, compare_as = lambda x:x) -> tuple:
+    """Returns a list returning all items in A that are also in B.
+    Use 'compare_as' to specify a key function for comparison."""
+    compare = lambda x: hashable_repr(compare_as(x))
+    seen = set(map(compare, B))
+    return tuple([n for n in A if compare(n) in seen])
 
 def dict_intersect(A: dict, B: dict, match_vals= False) -> dict:
     """Returns a dict returning all items (keys:vals) in A that are also in B if match_vals is True
@@ -179,14 +211,15 @@ def set_intersect(A: set, B: set) -> set:
     """Returns a set returning all members in A that are also in B"""
     return set(a for a in A if a in B)
 
-def type_intersect(A: Iterables, B: Iterables, match_vals= False) -> Iterables:
-    """General intersection for all types.  A and B must be the same type. Pass match_vals on to dicts"""
+def type_intersect(A: Iterables, B: Iterables, match_vals= False, compare_as = lambda x:x) -> Iterables:
+    """General intersection for all types.  A and B must be the same type. Pass match_vals on to dicts.
+    Use 'compare_as' to specify a key function for comparison."""
     if type(A) != type(B):
         raise TypeError("A and B must be the same type!")
     if isinstance(A, list) and isinstance(B, list):
-        return list_intersect(A, B)
+        return list_intersect(A, B, compare_as)
     elif isinstance(A, tuple) and isinstance(B, tuple):
-        return tuple_intersect(A, B)
+        return tuple_intersect(A, B, compare_as)
     elif isinstance(A, dict) and isinstance(B, dict):
         return dict_intersect(A, B, match_vals)
     elif isinstance(A, set) and isinstance(B, set):
@@ -243,7 +276,7 @@ def maybe_arg(func, pass_to_kwargs= False):
             return func(*args, **kwargs)
         except TypeError as e:
             s = str(e)
-            if "positional argument" in s or "multiple values " in s:
+            if ("positional argument" in s and "given" in s) or "multiple values " in s:
                 return wrapper(*args[:-1], **kwargs)
             elif "keyword argument '" in s:
                 pos = s.index("keyword argument '") + 18
